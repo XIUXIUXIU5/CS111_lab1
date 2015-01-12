@@ -297,7 +297,7 @@ command_buffer_t make_command_buffer (char* buffer, size_t size){
                 }
                 
                 //Question? can ; follow a new line??
-                else if (isEqual(curr->head[row-1], ";")|| curr->head[row-1][0] == '\n' ) {
+                else if (isEqual(curr->head[row-1], ";")|| curr->head[row-1][0] == '\n' ||isStartComComand(curr->head[row-1]) ||isEqual(curr->head[row-1], "do") || isEqual(curr->head[row-1], "then") ||isEqual(curr->head[row-1], "else")) {
                     fprintf(stderr, "no valid command before ;");
                 }
             }
@@ -313,6 +313,11 @@ command_buffer_t make_command_buffer (char* buffer, size_t size){
                 {
                     fprintf(stderr, "invalid commad before > or <");
                 }
+                
+                else if(isComComand(curr->head[row-1]) && !(isEqual(curr->head[row-1], "fi")||isEqual(curr->head[row-1], "done")))
+                    fprintf(stderr, "invalid command before > or <");
+                else if(count == size - 1)
+                    fprintf(stderr, "invalid command after > or <");
             }
             
             else if (buffer[count] == '|'){
@@ -359,8 +364,20 @@ command_buffer_t make_command_buffer (char* buffer, size_t size){
                 if (buffer[count+1] == '\n' && (num_if == num_fi) && (num_done == num_until+num_while)) {
                     
                     //replace the last new line with '\0'
-                    if (curr->head[row-1][0] == '\n' || curr->head[row-1][0] == ';')
-                        curr->head[row-1][0] = '\0';
+                    if (row != 0) {
+                        if (curr->head[row-1][0] == '\n' || curr->head[row-1][0] == ';')
+                            curr->head[row-1][0] = '\0';
+                        else if(curr->head[row-1][0] == ';')
+                        {
+                            if(row > 1 && isEqual(curr->head[row-2],"done"))
+                               curr->head[row-1][0] = '\0';
+                            
+                            else
+                               fprintf(stderr, "no statement after ;");
+                        }
+                        else if(curr->head[row-1][0] == '|' ||curr->head[row-1][0] == '>' ||curr->head[row-1][0] == '<' || curr->head[row-1][0] == ';')
+                            fprintf(stderr,"no command after special token");
+                    }
                     
                     else
                         curr->head[row][0] = '\0';
